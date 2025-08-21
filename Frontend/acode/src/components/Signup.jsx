@@ -27,6 +27,9 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 
+// Use API_BASE from your api helper or fallback to import.meta.env
+import { API_BASE } from "../lib/api";
+
 const Signup = () => {
   const navigate = useNavigate();
   const isXs = useMediaQuery("(max-width:420px)");
@@ -109,19 +112,34 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      await axios.post("http://127.0.0.1:8000/auth/api/signup/", {
+      const base =
+        (API_BASE || import.meta.env.VITE_API_BASE_URL).replace(
+          /\/$/,
+          ""
+        );
+      const url = `${base}/auth/api/signup/`;
+
+      const response = await axios.post(url, {
         email: email,
         password: password,
         confirm_password: confirmPassword,
       });
 
-      // original behaviour preserved: show message and redirect shortly after
+      // If API returns tokens (some setups do), optionally store them:
+      const data = response?.data || {};
+      if (data.access || data.token || data.refresh) {
+        if (data.access) localStorage.setItem("access_token", data.access);
+        if (data.refresh) localStorage.setItem("refresh_token", data.refresh);
+        if (data.token) localStorage.setItem("token", data.token);
+      }
+
       showMessage("Signup successful! Redirecting to login...", "success");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/login"), 1400);
     } catch (error) {
       const serverMsg =
         error?.response?.data?.error ||
         error?.response?.data?.detail ||
+        error?.response?.data?.message ||
         "An unexpected error occurred. Please try again.";
       showMessage(serverMsg, "error");
       console.error("Signup error:", error);

@@ -25,11 +25,15 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
+// Use the API base exported from your helper or read directly from import.meta.env
+// If you followed earlier instructions, src/lib/api.js exports API_BASE.
+// Otherwise you can replace API_BASE with import.meta.env.VITE_API_BASE_URL
+import { API_BASE } from "../lib/api";
+
 const Login = () => {
   const navigate = useNavigate();
-  // breakpoints for responsive tweaks
-  const isXs = useMediaQuery("(max-width:420px)"); // very small phones
-  const isSm = useMediaQuery("(max-width:900px)"); // phones & small tablets
+  const isXs = useMediaQuery("(max-width:420px)");
+  const isSm = useMediaQuery("(max-width:900px)");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +60,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // small local validation for better UX
     if (!email || !password) {
       showMessage("Please enter both email and password.", "error");
       return;
@@ -68,20 +71,33 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await axios.post("http://127.0.0.1:8000/auth/api/login/", {
+      // Construct URL using API_BASE (no trailing slash issues)
+      const base = (API_BASE || import.meta.env.VITE_API_BASE_URL).replace(/\/$/, "");
+      const url = `${base}/auth/api/login/`;
+
+      const response = await axios.post(url, {
         email: email,
         password: password,
       });
 
-      // keep original behaviour: show message and redirect shortly after
+      // If your API returns tokens (common patterns: access/refresh or token)
+      const data = response?.data || {};
+      if (data.access || data.token || data.refresh) {
+        // store safely for now in localStorage (consider httpOnly cookies for production)
+        if (data.access) localStorage.setItem("access_token", data.access);
+        if (data.refresh) localStorage.setItem("refresh_token", data.refresh);
+        if (data.token) localStorage.setItem("token", data.token);
+      }
+
       showMessage("Login successful! Redirecting to home...", "success");
-      // you may want to store tokens here if returned by API
-      setTimeout(() => navigate("/home"), 2000);
+
+      // brief delay to let user read the success message before redirect
+      setTimeout(() => navigate("/home"), 1200);
     } catch (error) {
-      // preserve original error messaging behavior
       const serverMsg =
         error?.response?.data?.error ||
         error?.response?.data?.detail ||
+        error?.response?.data?.message ||
         "Invalid credentials. Please try again.";
       showMessage(serverMsg, "error");
       console.error("Login error:", error);
@@ -94,7 +110,6 @@ const Login = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        // subtle background without using theme code; keeps file standalone
         background: "linear-gradient(180deg, #f6f8ff 0%, #ffffff 100%)",
         display: "flex",
         alignItems: "center",
@@ -102,7 +117,6 @@ const Login = () => {
         p: { xs: 2, sm: 3 },
       }}
     >
-      {/* Container width scales so form is larger on phones & tablets */}
       <Container
         maxWidth={false}
         sx={{
@@ -122,7 +136,6 @@ const Login = () => {
             minHeight: { xs: "auto", sm: 320 },
           }}
         >
-          {/* Brand column: show on small+ screens, keep concise on very small */}
           <Box
             sx={{
               flex: { xs: "0 0 auto", sm: 1 },
@@ -171,7 +184,6 @@ const Login = () => {
             </Typography>
           </Box>
 
-          {/* Form column */}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -185,7 +197,6 @@ const Login = () => {
             }}
             noValidate
           >
-            {/* header with divider */}
             <Box
               sx={{
                 display: "flex",
@@ -250,7 +261,6 @@ const Login = () => {
               }}
             />
 
-            {/* links and helper row */}
             <Box
               sx={{
                 display: "flex",
@@ -261,8 +271,6 @@ const Login = () => {
                 mt: 0.5,
               }}
             >
-
-
               <Typography
                 variant="body2"
                 color="text.secondary"
@@ -297,11 +305,7 @@ const Login = () => {
                 fontSize: isXs ? 15 : 16,
               }}
             >
-              {loading ? (
-                <CircularProgress size={22} thickness={5} />
-              ) : (
-                "Login"
-              )}
+              {loading ? <CircularProgress size={22} thickness={5} /> : "Login"}
             </Button>
 
             <Typography
@@ -315,7 +319,6 @@ const Login = () => {
           </Box>
         </Paper>
 
-        {/* Feedback snackbar */}
         <Snackbar
           open={openSnackbar}
           autoHideDuration={4200}

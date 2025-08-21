@@ -1,22 +1,10 @@
+// src/pages/Home.jsx  (or wherever your component lives)
 import React, { useState, useEffect } from "react";
 import {
-  Fab,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-  InputAdornment,
+  Fab, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  TextField, Card, CardContent, Typography, Grid, ThemeProvider,
+  createTheme, CssBaseline, InputAdornment, Autocomplete
 } from "@mui/material";
-import { Autocomplete } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,15 +15,13 @@ import AccountBalance from "@mui/icons-material/AccountBalance";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 
+import { API_BASE, NUB_BANKS_URL, apiFetch } from "../lib/api"; // adjust path if needed
+
 const theme = createTheme({
   palette: {
     mode: "light",
-    primary: {
-      main: "#6200ea", // Purple color
-    },
-    secondary: {
-      main: "#03dac5", // Teal color
-    },
+    primary: { main: "#6200ea" },
+    secondary: { main: "#03dac5" },
   },
 });
 
@@ -56,8 +42,9 @@ const Home = () => {
   useEffect(() => {
     const fetchBanks = async () => {
       try {
-        const response = await fetch("https://nubapi.com/bank-json");
-        const data = await response.json();
+        // Uses the env-configurable NUB bank URL
+        const res = await fetch(NUB_BANKS_URL);
+        const data = await res.json();
         setBanks(data);
       } catch (err) {
         console.error("Error fetching banks:", err);
@@ -73,23 +60,19 @@ const Home = () => {
     setAccountHolderName("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/verify-account/", {
+      // Using apiFetch with path so API_BASE is used automatically
+      const { ok, data } = await apiFetch("/auth/verify-account/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           account_number: accountNumber,
           bank_code: selectedBank,
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setAccountHolderName(data.account_name);
+      if (ok) {
+        setAccountHolderName(data?.account_name || "");
       } else {
-        setError(data.error || "Failed to verify account");
+        setError(data?.error || "Failed to verify account");
       }
     } catch (err) {
       setError("An error occurred while verifying the account");
@@ -144,7 +127,6 @@ const Home = () => {
           Verify and Save Bank Account
         </Typography>
 
-        {/* Search Input */}
         <TextField
           fullWidth
           placeholder="Search by account name or number..."
@@ -161,7 +143,6 @@ const Home = () => {
           }}
         />
 
-        {/* Saved Accounts */}
         <Grid container spacing={2}>
           {filteredAccounts.map((account, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
@@ -185,20 +166,14 @@ const Home = () => {
           ))}
         </Grid>
 
-        {/* Floating Add Account Button */}
         <Fab
           color="primary"
           onClick={() => setShowModal(true)}
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-          }}
+          style={{ position: "fixed", bottom: "20px", right: "20px" }}
         >
           <AddIcon />
         </Fab>
 
-        {/* Modal */}
         <Dialog open={showModal} onClose={() => setShowModal(false)}>
           <DialogTitle>Add New Account</DialogTitle>
           <DialogContent>
@@ -224,9 +199,7 @@ const Home = () => {
                 options={banks}
                 getOptionLabel={(bank) => bank.name || ""}
                 value={banks.find((bank) => bank.code === selectedBank) || null}
-                onChange={(e, newValue) => {
-                  setSelectedBank(newValue ? newValue.code : "");
-                }}
+                onChange={(e, newValue) => setSelectedBank(newValue ? newValue.code : "")}
                 renderInput={(params) => (
                   <TextField
                     {...params}
