@@ -1,0 +1,1 @@
+[{"model": "accounts.customuser", "fields": {"password": "pbkdf2_sha256$870000$JvVhpjR3gjGWUR5yN0UQGr$0DHIWEnkW1e1YFSjixmpZdShvxShxVwL7DrZ6T2XeIA=", "last_login": null, "is_superuser": true, "email": "henryiheonu264@gmail.com", "first_name": "", "last_name": "", "is_active": true, "is_staff": true, "groups": [], "user_permissions": []}}]

@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+*.manifest
+*.spec
+
+# Virtualenv
+venv/
+env/
+.env/
+env.bak/
+.env.bak/
+.env_api/
+.env.prod
+.env.dev
+
+# Django stuff
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+
+# VSCode / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest / Coverage
+.coverage
+.tox/
+.pytest_cache/
+htmlcov/
+
+# Migrations (optional – keep if you want version control for migrations)
+# **Comment out if you want to track migrations**
+# */migrations/*.py
+# */migrations/*.pyc
+
+# Render / Deployment
+*.bak
+.env
+.venv
